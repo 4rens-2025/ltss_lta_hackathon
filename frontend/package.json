@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tomtom-international/web-sdk-services": "^6.25.0",
+    "lucide-react": "^0.479.0",
+    "mapbox-gl": "^3.10.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-map-gl": "^8.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
