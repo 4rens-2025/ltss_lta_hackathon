@@ -5,8 +5,13 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/base:jammy",
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {},
-		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"installTools": true,
+			"version": "latest"
+		},
 		"ghcr.io/va-h/devcontainers-features/uv:1": {},
 		"ghcr.io/devcontainers-extra/features/supabase-cli:1": {}
 	},
@@ -18,7 +23,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "cd frontend && npm install"
+	"postCreateCommand": "cd frontend && npm install && cd ../api && uv sync"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
