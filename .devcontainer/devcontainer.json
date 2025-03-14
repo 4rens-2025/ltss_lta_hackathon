@@ -23,7 +23,15 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "cd frontend && npm install && cd ../api && uv sync"
+	"postCreateCommand": "cd frontend && npm install && cd ../api && uv sync",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.black-formatter",
+				"esbenp.prettier-vscode"
+			]
+		}
+	}
 
 	// Configure tool-specific properties.
 	// "customizations": {},
