@@ -1,119 +1,161 @@
-// src/components/MapComponent.tsx
-import React, { useState, useRef, useEffect } from "react";
-import Map, { Source, Layer, Popup, MapRef } from "react-map-gl/mapbox";
+import React, { useState, useEffect, useRef } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
-import MapboxTraffic from "@mapbox/mapbox-gl-traffic";
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
-// A visible layer to draw the boundary line
-import type { LineLayerSpecification } from "react-map-gl/mapbox";
-
-const boundaryLineLayer: LineLayerSpecification = {
-    id: "singapore-boundary-line",
-    type: "line",
-    source: "boundary",
-    paint: {
-        "line-color": "#FF0000", // red color for the boundary outline
-        "line-width": 3,
-    },
-};
-
-// An invisible fill layer to capture click events on the boundary
-import type { FillLayerSpecification } from "react-map-gl/mapbox";
-
-const boundaryFillLayer: FillLayerSpecification = {
-    id: "singapore-boundary-fill",
-    type: "fill",
-    source: "boundary",
-    paint: {
-        "fill-color": "#000000",
-        "fill-opacity": 0, // fully transparent but still catches events
-    },
-};
-
-interface PopupData {
-    lngLat: { lng: number; lat: number };
-    properties: { [key: string]: any };
-}
 
 const MapComponent = () => {
-    const [viewState, setViewState] = useState({
-        latitude: 1.3521,
-        longitude: 103.8198,
-        zoom: 10,
-        width: "100%",
-        height: "100%",
-    });
-
-    const mapRef = useRef<MapRef>(null);
-    const [popupData, setPopupData] = useState<PopupData | null>(null);
+    const mapContainerRef = useRef(null);
+    const mapRef = useRef(null);
+    const [selectedFeature, setSelectedFeature] = useState(null);
+    const prevSelectedRef = useRef(null);
 
     useEffect(() => {
-        const map = mapRef.current?.getMap();
-        if (!map) return;
+        // Set your Mapbox access token
+        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-        // When the user clicks on the invisible fill layer, display a popup.
-        map.on("click", "singapore-boundary-fill", (e) => {
-            if (!e.features || e.features.length === 0) return;
-            const feature = e.features[0];
-            setPopupData({
-                lngLat: e.lngLat,
-                properties: feature.properties || {},
+        const bounds = [
+            [103.5, 1.18], // Southwest coordinates (lower-left)
+            [104.091, 1.485], // Northeast coordinates (upper-right)
+        ];
+
+        // Initialize the map
+        const map = new mapboxgl.Map({
+            container: mapContainerRef.current,
+            center: [103.8198, 1.3521], // Center over Singapore
+            zoom: 11,
+            style: "mapbox://styles/mapbox/navigation-night-v1",
+            maxBounds: bounds,
+        });
+        mapRef.current = map;
+
+        map.on("load", () => {
+            // Add the Singapore boundary as a GeoJSON source
+            map.addSource("singapore", {
+                type: "geojson",
+                data: singaporeBoundary,
+                generateId: true,
+            });
+
+            // Add an invisible fill layer (to capture click events)
+            map.addLayer({
+                id: "singapore-fill",
+                type: "fill",
+                source: "singapore",
+                paint: {
+                    "fill-color": "#000000",
+                    "fill-opacity": [
+                        "case",
+                        ["boolean", ["feature-state", "selected"], false],
+                        0.4,
+                        ["boolean", ["feature-state", "highlight"], false],
+                        0.2,
+                        0.1,
+                    ],
+                },
+            });
+
+            // Add a visible line layer to outline the boundary
+            map.addLayer({
+                id: "singapore-line",
+                type: "line",
+                source: "singapore",
+                paint: {
+                    "line-color": "#000000",
+                    "line-width": 1,
+                },
+            });
+
+            // When clicking on the fill layer, update feature state for the clicked feature
+            map.on("click", "singapore-fill", (e) => {
+                if (!e.features || e.features.length === 0) return;
+                const feature = e.features[0];
+                // Clear previous selection if different
+                if (prevSelectedRef.current) {
+                    map.setFeatureState(prevSelectedRef.current, {
+                        selected: false,
+                    });
+                }
+                map.setFeatureState(feature, { selected: true });
+                prevSelectedRef.current = feature;
+                setSelectedFeature(feature);
+            });
+
+            // Clicking outside deselects the feature
+            map.on("click", (e) => {
+                const features = map.queryRenderedFeatures(e.point, {
+                    layers: ["singapore-fill"],
+                });
+                if (!features.length && prevSelectedRef.current) {
+                    map.setFeatureState(prevSelectedRef.current, {
+                        selected: false,
+                    });
+                    prevSelectedRef.current = null;
+                    setSelectedFeature(null);
+                }
+            });
+
+            // Hovering over a feature will highlight it
+            map.addInteraction("mouseenter", {
+                type: "mouseenter",
+                target: { layerId: "singapore-fill" },
+                handler: ({ feature }) => {
+                    map.setFeatureState(feature, { highlight: true });
+                    map.getCanvas().style.cursor = "pointer";
+                },
+            });
+
+            // Moving the mouse away from a feature will remove the highlight
+            map.addInteraction("mouseleave", {
+                type: "mouseleave",
+                target: { layerId: "singapore-fill" },
+                handler: ({ feature }) => {
+                    map.setFeatureState(feature, { highlight: false });
+                    map.getCanvas().style.cursor = "";
+                    return false;
+                },
             });
         });
 
-        // Optional: If clicking anywhere else on the map, hide the popup.
-        const handleMapClick = (e: any) => {
-            // Query features under the click point from our fill layer.
-            const features = map.queryRenderedFeatures(e.point, {
-                layers: ["singapore-boundary-fill"],
-            });
-            if (!features.length) {
-                setPopupData(null);
-            }
-        };
-
-        map.on("click", handleMapClick);
-
-        return () => {
-            if (map) {
-                map.off("click", "singapore-boundary-fill");
-                map.off("click", handleMapClick);
-            }
-        };
+        // Cleanup on unmount
+        return () => map.remove();
     }, []);
 
     return (
-        <Map
-            {...viewState}
-            ref={mapRef}
-            onMove={(evt) => setViewState(evt.viewState)}
-            mapStyle="mapbox://styles/mapbox/streets-v11"
-            mapboxAccessToken={MAPBOX_TOKEN}
-        >
-            <Source id="boundary" type="geojson" data={singaporeBoundary}>
-                <Layer {...boundaryFillLayer} />
-                <Layer {...boundaryLineLayer} />
-            </Source>
-
-            {popupData && (
-                <Popup
-                    longitude={popupData.lngLat.lng}
-                    latitude={popupData.lngLat.lat}
-                    anchor="top"
-                    closeButton={true}
-                    closeOnClick={false}
-                    onClose={() => setPopupData(null)}
+        <div style={{ position: "relative", width: "100%", height: "100vh" }}>
+            <div
+                ref={mapContainerRef}
+                style={{ width: "100%", height: "100%" }}
+            />
+            {selectedFeature && (
+                <div
+                    style={{
+                        position: "absolute",
+                        right: 10,
+                        top: 10,
+                        width: "230px",
+                        padding: "10px",
+                        background: "#fff",
+                        borderRadius: "3px",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                        fontFamily: "sans-serif",
+                        fontSize: "12px",
+                        lineHeight: "20px",
+                    }}
                 >
-                    <div>
-                        <h3>{popupData.properties.Name}</h3>
-                        <p>{popupData.properties.ED_DESC}</p>
-                        {/* You can display additional properties as needed */}
-                    </div>
-                </Popup>
+                    <h3>{selectedFeature.properties.Name}</h3>
+                    <hr />
+                    <ul style={{ padding: 0, listStyle: "none" }}>
+                        {Object.entries(selectedFeature.properties).map(
+                            ([key, value]) => (
+                                <li key={key}>
+                                    <strong>{key}</strong>: {value.toString()}
+                                </li>
+                            )
+                        )}
+                    </ul>
+                </div>
             )}
-        </Map>
+        </div>
     );
 };
 
