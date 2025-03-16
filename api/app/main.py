@@ -1,6 +1,9 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.services.data_fetchers.traffic_incidents_fetcher import (
+    TrafficIncidentsFetcher,
+)
 from app.services.data_fetchers import ApprovedRoadWorkFetcher, fetch_image
 from app.services.websocket.connection_manager import manager
 
@@ -35,7 +38,7 @@ def read_root():
 
 @app.get("/test")
 async def test():
-    fetcher = ApprovedRoadWorkFetcher()
+    fetcher = TrafficIncidentsFetcher()
     return await fetcher.fetch()
 
 
