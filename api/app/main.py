@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from app.services.data_fetchers.image_fetcher import fetch_image
+
+from app.services.data_fetchers import ApprovedRoadWorkFetcher, fetch_image
 from app.services.websocket.connection_manager import manager
 
 app = FastAPI()
@@ -34,8 +34,9 @@ def read_root():
 
 
 @app.get("/test")
-def test():
-    return "LOL"
+async def test():
+    fetcher = ApprovedRoadWorkFetcher()
+    return await fetcher.fetch()
 
 
 @app.on_event("startup")

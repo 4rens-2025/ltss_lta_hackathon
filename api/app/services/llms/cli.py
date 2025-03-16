@@ -1,4 +1,5 @@
 import click
+import os
 from crewai import LLM
 
 from app.services.llms.roadSeek import RoadSeek
@@ -10,7 +11,9 @@ DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 
 @click.command()
-@click.option("--data", prompt="Input data", help="The data to be processed by the agent.")
+@click.option(
+    "--data", prompt="Input data", help="The data to be processed by the agent."
+)
 def main(data):
     road_seek = RoadSeek(
         llm=LLM(

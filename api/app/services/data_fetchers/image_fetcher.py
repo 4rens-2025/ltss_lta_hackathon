@@ -23,6 +23,8 @@ async def fetch_image():
         data = response.json()
         # Broadcast the data to all connected clients
         await manager.broadcast(data)
-        print("Done sending image")
+        # print("Done sending image")
     else:
-        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data")
+        raise HTTPException(
+            status_code=response.status_code, detail="Failed to fetch data"
+        )
