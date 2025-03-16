@@ -5,6 +5,7 @@ from app.services.data_fetchers import (
     ApprovedRoadWorkFetcher,
     TrafficIncidentsFetcher,
     TrafficImagesFetcher,
+    TrafficSpeedBandsFetcher,
     fetch_image,
 )
 from app.services.websocket.connection_manager import manager
@@ -40,7 +41,7 @@ def read_root():
 
 @app.get("/test")
 async def test():
-    fetcher = TrafficImagesFetcher()
+    fetcher = TrafficSpeedBandsFetcher()
     return await fetcher.fetch()
 
 
