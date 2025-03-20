@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
+import singaporeRoads from "../data/singapore-roads-classified-correct.json";
+import { updateRoadFeatureState } from "../services/map/roadLayerService";
 
 const MapComponent = () => {
     const mapContainerRef = useRef(null);
@@ -36,6 +38,12 @@ const MapComponent = () => {
                 generateId: true,
             });
 
+            map.addSource("singapore-road", {
+                type: "geojson",
+                data: singaporeRoads,
+                generateId: true,
+            });
+
             // Add an invisible fill layer (to capture click events)
             map.addLayer({
                 id: "singapore-fill",
@@ -62,6 +70,36 @@ const MapComponent = () => {
                 paint: {
                     "line-color": "#000000",
                     "line-width": 1,
+                },
+            });
+
+            // Add a invisible layer for singapore road
+            map.addLayer({
+                id: "singapore-roads",
+                type: "line",
+                source: "singapore-road",
+                paint: {
+                    "line-color": [
+                        "case",
+                        ["==", ["feature-state", "road_state"], 1],
+                        "rgb(134, 231, 75)", // State 1 color
+                        ["==", ["feature-state", "road_state"], 2],
+                        "rgb(249, 219, 73)", // State 2 color
+                        ["==", ["feature-state", "road_state"], 3],
+                        "rgb(216, 69, 49)", // State 3 color
+                        "rgba(0, 0, 0, 0)",
+                    ],
+                    "fill-opacity": [
+                        "case",
+                        ["==", ["feature-state", "road_state"], 1],
+                        1,
+                        ["==", ["feature-state", "road_state"], 2],
+                        1,
+                        ["==", ["feature-state", "road_state"], 3],
+                        1,
+                        "0",
+                    ],
+                    "line-width": 3,
                 },
             });
 
@@ -119,6 +157,11 @@ const MapComponent = () => {
         // Cleanup on unmount
         return () => map.remove();
     }, []);
+
+    const roadNamesToHighlight = ["Orchard Road", "Hougang Avenue 1"];
+    if (mapRef.current) {
+        updateRoadFeatureState(mapRef.current, roadNamesToHighlight);
+    }
 
     return (
         <div style={{ position: "relative", width: "100%", height: "100vh" }}>
