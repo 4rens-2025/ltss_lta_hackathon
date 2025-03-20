@@ -4,6 +4,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
 import singaporeRoads from "../data/singapore-roads-classified-correct.json";
 import { updateRoadFeatureState } from "../services/map/roadLayerService";
+import {
+    connectWebSocket,
+    disconnectWebSocket,
+} from "../services/websocket/socketClient";
 
 const MapComponent = () => {
     const mapContainerRef = useRef(null);
@@ -154,8 +158,21 @@ const MapComponent = () => {
             });
         });
 
+        // Connect to the WebSocket server
+        const websocketUrl = "ws://localhost:8000/ws"; // Replace with your backend WebSocket URL
+        connectWebSocket(websocketUrl, (data) => {
+            if (mapRef.current) {
+                // Update road features based on WebSocket data
+                const roadNamesToHighlight = data.roadNames || [];
+                updateRoadFeatureState(mapRef.current, roadNamesToHighlight);
+            }
+        });
+
         // Cleanup on unmount
-        return () => map.remove();
+        return () => {
+            disconnectWebSocket();
+            map.remove();
+        };
     }, []);
 
     const roadNamesToHighlight = ["Orchard Road", "Hougang Avenue 1"];
