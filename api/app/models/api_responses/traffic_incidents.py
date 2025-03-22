@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 class IncidentType(str, Enum):
     ACCIDENT = "Accident"
     ROAD_WORKS = "Roadwork"
-    VEHICLE_BREAKDOWN = "Vehicle Breakdown"
+    VEHICLE_BREAKDOWN = "Vehicle breakdown"
     WEATHER = "Weather"
     OBSTACLE = "Obstacle"
     ROAD_BLOCK = "Road Block"

@@ -1,12 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers.dashboard_router import router
 from app.services.data_fetchers import (
-    ApprovedRoadWorkFetcher,
-    TrafficIncidentsFetcher,
-    TrafficImagesFetcher,
-    TrafficSpeedBandsFetcher,
-    FaultyTrafficLightsFetcher,
     fetch_image,
 )
 from app.services.websocket.connection_manager import manager
@@ -21,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(router)
 
 
 # WebSocket endpoint
@@ -42,8 +40,7 @@ def read_root():
 
 @app.get("/test")
 async def test():
-    fetcher = FaultyTrafficLightsFetcher()
-    return await fetcher.fetch()
+    return "lol"
 
 
 @app.on_event("startup")

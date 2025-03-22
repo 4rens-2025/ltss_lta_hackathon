@@ -14,6 +14,7 @@ load_dotenv()
 
 class GenericFetcher(BaseModel, Generic[T]):
     url: str = Field(..., description="API URL to fetch data from")
+    field_key: str = Field(..., description="Key to access data in the response")
     response_model: Type[T]
 
     async def fetch(self) -> T:
