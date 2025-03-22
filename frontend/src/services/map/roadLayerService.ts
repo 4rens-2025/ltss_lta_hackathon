@@ -1,31 +1,49 @@
 import { Map } from "mapbox-gl";
+import { RoadWorkEvent } from "../../types/backend";
 
 /**
- * Updates the feature state for specific road names based on the `final_name` property.
- * @param map - The Mapbox map instance.
- * @param roadNames - An array of road names to highlight.
+ * Highlight roads with road works by overlaying a new GeoJSON layer
+ * @param map - Mapbox GL map instance
+ * @param roadWorks - Array of road work events
+ * @param singaporeRoadGeoJSON - The full base road geometry dataset
  */
-export const updateRoadFeatureState = (map: Map, roadNames: string[]) => {
-    // Reset all features to default state
-    const allFeatures = map.querySourceFeatures("singapore-road");
-    allFeatures.forEach((feature) => {
-        map.setFeatureState(
-            { source: "singapore-road", id: feature.id },
-            { road_state: 0 } // Default state
-        );
+export const highlightRoadWorks = (
+    map: Map,
+    roadWorks: RoadWorkEvent[],
+    singaporeRoadGeoJSON: GeoJSON.FeatureCollection
+) => {
+    const roadNamesToHighlight = new Set(roadWorks.map((rw) => rw.road_name));
+
+    const matchingFeatures = singaporeRoadGeoJSON.features.filter((feature) => {
+        const finalName = feature.properties?.final_name;
+        return finalName && roadNamesToHighlight.has(finalName);
     });
 
-    // Highlight the specified road names by matching `final_name`
-    roadNames.forEach((roadName) => {
-        const matchingFeatures = allFeatures.filter(
-            (feature) => feature.properties?.final_name === roadName
-        );
+    const highlightGeoJSON: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: matchingFeatures,
+    };
 
-        matchingFeatures.forEach((feature) => {
-            map.setFeatureState(
-                { source: "singapore-road", id: feature.id },
-                { road_state: 1 } // Highlighted state
-            );
-        });
+    // Clean up old layer/source if they exist
+    if (map.getLayer("road-works-highlight")) {
+        map.removeLayer("road-works-highlight");
+    }
+    if (map.getSource("road-works-highlight")) {
+        map.removeSource("road-works-highlight");
+    }
+
+    map.addSource("road-works-highlight", {
+        type: "geojson",
+        data: highlightGeoJSON,
+    });
+
+    map.addLayer({
+        id: "road-works-highlight",
+        type: "line",
+        source: "road-works-highlight",
+        paint: {
+            "line-color": "#FF5733",
+            "line-width": 4,
+        },
     });
 };

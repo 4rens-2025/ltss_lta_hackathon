@@ -3,7 +3,6 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
 import singaporeRoads from "../data/singapore-roads-classified-correct.json";
-import { updateRoadFeatureState } from "../services/map/roadLayerService";
 import {
     connectWebSocket,
     disconnectWebSocket,
@@ -159,12 +158,9 @@ const MapComponent = () => {
         });
 
         // Connect to the WebSocket server
-        const websocketUrl = "ws://localhost:8000/ws"; // Replace with your backend WebSocket URL
+        const websocketUrl = "ws://localhost:8000/ws/dashboard"; // Replace with your backend WebSocket URL
         connectWebSocket(websocketUrl, (data) => {
             if (mapRef.current) {
-                // Update road features based on WebSocket data
-                const roadNamesToHighlight = data.roadNames || [];
-                updateRoadFeatureState(mapRef.current, roadNamesToHighlight);
             }
         });
 
@@ -174,11 +170,6 @@ const MapComponent = () => {
             map.remove();
         };
     }, []);
-
-    const roadNamesToHighlight = ["Orchard Road", "Hougang Avenue 1"];
-    if (mapRef.current) {
-        updateRoadFeatureState(mapRef.current, roadNamesToHighlight);
-    }
 
     return (
         <div style={{ position: "relative", width: "100%", height: "100vh" }}>
