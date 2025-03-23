@@ -1,13 +1,20 @@
 import mapboxgl from "mapbox-gl";
 import { TrafficImage } from "../../types/backend";
 
-// Track the camera markers globally within this module
+// Tracks all current camera markers
 let currentCameraMarkers: mapboxgl.Marker[] = [];
 
+// Toggle visibility state (default is visible)
+let cameraVisible = false;
+
+// Icon for camera marker
 const cameraIconUrl = "/cctv.png";
 
+/**
+ * Add camera markers to the map
+ */
 export function addTrafficCameras(map: mapboxgl.Map, cameras: TrafficImage[]) {
-    // Remove all existing markers
+    // Remove old markers
     currentCameraMarkers.forEach((marker) => marker.remove());
     currentCameraMarkers = [];
 
@@ -15,11 +22,12 @@ export function addTrafficCameras(map: mapboxgl.Map, cameras: TrafficImage[]) {
     cameras.forEach((camera) => {
         const el = document.createElement("div");
         el.className = "camera-marker";
-        el.style.backgroundImage = `url(${cameraIconUrl})`; // or incident.png
+        el.style.backgroundImage = `url(${cameraIconUrl})`;
         el.style.width = "22px";
         el.style.height = "22px";
         el.style.backgroundSize = "100%";
         el.style.cursor = "pointer";
+        el.style.display = cameraVisible ? "block" : "none";
 
         const marker = new mapboxgl.Marker(el)
             .setLngLat([camera.longitude, camera.latitude])
@@ -31,5 +39,17 @@ export function addTrafficCameras(map: mapboxgl.Map, cameras: TrafficImage[]) {
             .addTo(map);
 
         currentCameraMarkers.push(marker);
+    });
+}
+
+/**
+ * Toggle visibility of all camera markers
+ */
+export function setCameraVisibility(visible: boolean) {
+    cameraVisible = visible;
+
+    currentCameraMarkers.forEach((marker) => {
+        const el = marker.getElement();
+        el.style.display = visible ? "block" : "none";
     });
 }

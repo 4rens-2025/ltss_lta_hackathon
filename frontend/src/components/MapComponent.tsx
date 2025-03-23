@@ -3,10 +3,20 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
 import { BackendData } from "../types/backend";
-import { highlightRoadWorks } from "../services/map/roadLayerService";
-import { addTrafficCameras } from "../services/map/addCamera";
-import { addIncidentMarkers } from "../services/map/addIncidents";
-import singaporeRoads from "../data/singapore-roads-classified-correct.json";
+import {
+    highlightRoadWorks,
+    removeRoadWorkLayer,
+    setRoadworkVisibility,
+} from "../services/map/roadLayerService";
+import {
+    addTrafficCameras,
+    setCameraVisibility,
+} from "../services/map/addCamera";
+import {
+    addIncidentMarkers,
+    setIncidentTypeVisibility,
+    INCIDENT_TYPES,
+} from "../services/map/addIncidents";
 import {
     connectWebSocket,
     disconnectWebSocket,
@@ -17,6 +27,7 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const [selectedFeature, setSelectedFeature] = useState(null);
     const prevSelectedRef = useRef(null);
+    const [roadworkVisible, setRoadworkVisible] = useState(false);
 
     useEffect(() => {
         // Set your Mapbox access token
@@ -71,36 +82,6 @@ const MapComponent = () => {
                 paint: {
                     "line-color": "#000000",
                     "line-width": 1,
-                },
-            });
-
-            // Add a invisible layer for singapore road
-            map.addLayer({
-                id: "singapore-roads",
-                type: "line",
-                source: "singapore-road",
-                paint: {
-                    "line-color": [
-                        "case",
-                        ["==", ["feature-state", "road_state"], 1],
-                        "rgb(134, 231, 75)", // State 1 color
-                        ["==", ["feature-state", "road_state"], 2],
-                        "rgb(249, 219, 73)", // State 2 color
-                        ["==", ["feature-state", "road_state"], 3],
-                        "rgb(216, 69, 49)", // State 3 color
-                        "rgba(0, 0, 0, 0)",
-                    ],
-                    "fill-opacity": [
-                        "case",
-                        ["==", ["feature-state", "road_state"], 1],
-                        1,
-                        ["==", ["feature-state", "road_state"], 2],
-                        1,
-                        ["==", ["feature-state", "road_state"], 3],
-                        1,
-                        "0",
-                    ],
-                    "line-width": 3,
                 },
             });
 
@@ -198,6 +179,88 @@ const MapComponent = () => {
                 ref={mapContainerRef}
                 style={{ width: "100%", height: "100%" }}
             />
+
+            {/* ✅ Top-left control panel with multiple toggles */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    left: "10px",
+                    background: "white",
+                    padding: "10px",
+                    borderRadius: "6px",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                    zIndex: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                }}
+            >
+                {/* ✅ Camera toggle */}
+                <label
+                    style={{
+                        fontSize: "14px",
+                        display: "flex",
+                        alignItems: "center", // Align checkbox and text vertically
+                        gap: "6px", // Add spacing between checkbox and text
+                    }}
+                >
+                    <input
+                        type="checkbox"
+                        defaultChecked={false}
+                        onChange={(e) => setCameraVisibility(e.target.checked)}
+                    />
+                    Show Cameras
+                </label>
+
+                {/* ✅ Per-incident-type toggles */}
+                {INCIDENT_TYPES.map((type) => (
+                    <label
+                        key={type}
+                        style={{
+                            fontSize: "14px",
+                            display: "flex",
+                            alignItems: "center", // Align checkbox and text vertically
+                            gap: "6px", // Add spacing between checkbox and text
+                        }}
+                    >
+                        <input
+                            type="checkbox"
+                            defaultChecked={false}
+                            onChange={(e) => {
+                                setIncidentTypeVisibility(
+                                    type,
+                                    e.target.checked
+                                );
+                            }}
+                        />
+                        {type}
+                    </label>
+                ))}
+                <label
+                    style={{
+                        fontSize: "14px",
+                        display: "flex",
+                        alignItems: "center", // Align checkbox and text vertically
+                        gap: "6px", // Add spacing between checkbox and text
+                    }}
+                >
+                    <input
+                        type="checkbox"
+                        checked={roadworkVisible}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            setRoadworkVisible(checked); // your React state
+                            setRoadworkVisibility(mapRef.current, checked);
+                        }}
+                    />
+                    Show Approved Roadworks
+                </label>
+            </div>
+
+            {/* Existing feature detail popup */}
             {selectedFeature && (
                 <div
                     style={{
@@ -212,6 +275,7 @@ const MapComponent = () => {
                         fontFamily: "sans-serif",
                         fontSize: "12px",
                         lineHeight: "20px",
+                        zIndex: 9,
                     }}
                 >
                     <h3>{selectedFeature.properties.Name}</h3>

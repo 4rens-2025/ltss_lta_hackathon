@@ -96,3 +96,13 @@ export const highlightRoadWorks = (
         map.getCanvas().style.cursor = "";
     });
 };
+
+export function setRoadworkVisibility(map: MapboxMap, visible: boolean) {
+    if (map.getLayer("road-works-highlight")) {
+        map.setLayoutProperty(
+            "road-works-highlight",
+            "visibility",
+            visible ? "visible" : "none"
+        );
+    }
+}
