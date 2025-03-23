@@ -12,7 +12,8 @@ const roadMap: Map<string, Feature> = getRoadNameMap();
  */
 export const highlightRoadWorks = (
     map: MapboxMap,
-    roadWorks: RoadWorkEvent[]
+    roadWorks: RoadWorkEvent[],
+    visible: boolean
 ) => {
     const currentTime = new Date(); // Get the current time
 
@@ -95,6 +96,12 @@ export const highlightRoadWorks = (
     map.on("mouseleave", "road-works-highlight", () => {
         map.getCanvas().style.cursor = "";
     });
+
+    map.setLayoutProperty(
+        "road-works-highlight",
+        "visibility",
+        visible ? "visible" : "none"
+    );
 };
 
 export function setRoadworkVisibility(map: MapboxMap, visible: boolean) {

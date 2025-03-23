@@ -149,7 +149,11 @@ const MapComponent = () => {
 
                 // ✅ Highlight roads with road work
                 if (data.approved_road_works) {
-                    highlightRoadWorks(map, data.approved_road_works.value);
+                    highlightRoadWorks(
+                        map,
+                        data.approved_road_works.value,
+                        roadworkVisible
+                    );
                 }
 
                 // ✅ Display camera markers
