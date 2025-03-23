@@ -1,30 +1,42 @@
-import { Map } from "mapbox-gl";
+import { Map as MapboxMap, Popup } from "mapbox-gl";
 import { RoadWorkEvent } from "../../types/backend";
+import { Feature } from "geojson";
+import { getRoadNameMap } from "../../utils/roadHashMap";
+
+const roadMap: Map<string, Feature> = getRoadNameMap();
 
 /**
- * Highlight roads with road works by overlaying a new GeoJSON layer
+ * Highlight roads with road works using a prebuilt road name map
  * @param map - Mapbox GL map instance
  * @param roadWorks - Array of road work events
- * @param singaporeRoadGeoJSON - The full base road geometry dataset
  */
 export const highlightRoadWorks = (
-    map: Map,
-    roadWorks: RoadWorkEvent[],
-    singaporeRoadGeoJSON: GeoJSON.FeatureCollection
+    map: MapboxMap,
+    roadWorks: RoadWorkEvent[]
 ) => {
-    const roadNamesToHighlight = new Set(roadWorks.map((rw) => rw.road_name));
+    const currentTime = new Date(); // Get the current time
 
-    const matchingFeatures = singaporeRoadGeoJSON.features.filter((feature) => {
-        const finalName = feature.properties?.final_name;
-        return finalName && roadNamesToHighlight.has(finalName);
+    // Filter road works that are happening now
+    const activeRoadWorks = roadWorks.filter((rw) => {
+        const startTime = new Date(rw.start_date);
+        const endTime = new Date(rw.end_date);
+        return currentTime >= startTime && currentTime <= endTime;
     });
+
+    // Extract road names from active road works
+    const roadNamesToHighlight = new Set(
+        activeRoadWorks.map((rw) => rw.road_name)
+    );
+
+    const matchingFeatures = Array.from(roadNamesToHighlight)
+        .map((roadName) => roadMap.get(roadName))
+        .filter((feature): feature is Feature => !!feature);
 
     const highlightGeoJSON: GeoJSON.FeatureCollection = {
         type: "FeatureCollection",
         features: matchingFeatures,
     };
 
-    // Clean up old layer/source if they exist
     if (map.getLayer("road-works-highlight")) {
         map.removeLayer("road-works-highlight");
     }
@@ -43,7 +55,44 @@ export const highlightRoadWorks = (
         source: "road-works-highlight",
         paint: {
             "line-color": "#FF5733",
-            "line-width": 4,
+            "line-width": 3,
         },
+    });
+
+    // Add click event listener for the highlighted roads
+    map.on("click", "road-works-highlight", (e) => {
+        const features = e.features;
+        if (!features || features.length === 0) return;
+
+        const feature = features[0];
+        const roadName = feature.properties?.final_name;
+
+        // Find the corresponding road work event
+        const roadWork = activeRoadWorks.find(
+            (rw) => rw.road_name.toUpperCase() === roadName.toUpperCase()
+        );
+        if (roadWork) {
+            // Create a popup with road work information
+            new Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(
+                    `<strong>Road Name:</strong> ${roadWork.road_name}<br/>
+                     <strong>Start Date:</strong> ${roadWork.start_date}<br/>
+                     <strong>End Date:</strong> ${roadWork.end_date}<br/>
+                     <strong>Service Department:</strong> ${roadWork.svc_dept}<br/>
+                     `
+                )
+                .addTo(map);
+        }
+    });
+
+    // Change the cursor to a pointer when hovering over the roads
+    map.on("mouseenter", "road-works-highlight", () => {
+        map.getCanvas().style.cursor = "pointer";
+    });
+
+    // Reset the cursor when leaving the roads
+    map.on("mouseleave", "road-works-highlight", () => {
+        map.getCanvas().style.cursor = "";
     });
 };

@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
+import { BackendData } from "../types/backend";
+import { highlightRoadWorks } from "../services/map/roadLayerService";
+import { addTrafficCameras } from "../services/map/addCamera";
+import { addIncidentMarkers } from "../services/map/addIncidents";
 import singaporeRoads from "../data/singapore-roads-classified-correct.json";
 import {
     connectWebSocket,
@@ -38,12 +42,6 @@ const MapComponent = () => {
             map.addSource("singapore", {
                 type: "geojson",
                 data: singaporeBoundary,
-                generateId: true,
-            });
-
-            map.addSource("singapore-road", {
-                type: "geojson",
-                data: singaporeRoads,
                 generateId: true,
             });
 
@@ -158,9 +156,32 @@ const MapComponent = () => {
         });
 
         // Connect to the WebSocket server
-        const websocketUrl = "ws://localhost:8000/ws/dashboard"; // Replace with your backend WebSocket URL
-        connectWebSocket(websocketUrl, (data) => {
-            if (mapRef.current) {
+        const websocketUrl = "ws://localhost:8000/ws/dashboard";
+
+        connectWebSocket(websocketUrl, (rawData) => {
+            if (!mapRef.current) return;
+            const map = mapRef.current;
+
+            try {
+                const data: BackendData =
+                    typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+
+                // ✅ Highlight roads with road work
+                if (data.approved_road_works) {
+                    highlightRoadWorks(map, data.approved_road_works.value);
+                }
+
+                // ✅ Display camera markers
+                if (data.traffic_images) {
+                    addTrafficCameras(map, data.traffic_images.value);
+                }
+
+                // ✅ Display incident markers
+                if (data.traffic_incidents) {
+                    addIncidentMarkers(map, data.traffic_incidents.value);
+                }
+            } catch (error) {
+                console.error("Invalid WebSocket data:", error);
             }
         });
 
