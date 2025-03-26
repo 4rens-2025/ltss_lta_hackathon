@@ -23,11 +23,11 @@ class RoadSeek:
 
     @task
     def summary_task(self) -> Task:
-        return Task(config=self.tasks_config["summary_task"], output_file="summary.md")
+        return Task(config=self.tasks_config["summary_task"])
 
-    @task
-    def planning_task(self) -> Task:
-        return Task(config=self.tasks_config["planning_task"], output_file="plan.md")
+    # @task
+    # def planning_task(self) -> Task:
+    #     return Task(config=self.tasks_config["planning_task"])
 
     @crew
     def crew(self) -> Crew:

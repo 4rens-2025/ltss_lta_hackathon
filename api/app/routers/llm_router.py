@@ -1,5 +1,3 @@
-import asyncio
-from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.services.llms.summary_generation_service import SummaryGenerationService
@@ -12,5 +10,11 @@ router = APIRouter(prefix="/llm")
 async def trigger_summary_generation(
     summary_generation_service=Depends(SummaryGenerationService),
 ):
-    asyncio.create_task(summary_generation_service.trigger_generate_summary())
-    return "Summary generation triggered"
+    return await summary_generation_service.trigger_generate_summary()
+
+
+@router.get("/latest_summary")
+async def get_latest_summary(
+    summary_generation_service=Depends(SummaryGenerationService),
+):
+    return await summary_generation_service.get_latest_summary()

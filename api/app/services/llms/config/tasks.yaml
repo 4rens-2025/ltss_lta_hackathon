@@ -5,8 +5,10 @@ summary_task:
     {data}
   expected_output: >
     A detailed report summarizing the traffic situation, including congestion hotspots, 
-    accident-prone areas, and peak traffic times. The report should be in markdown format.
+    accident-prone areas, and peak traffic times.
+    Formatted as markdown without '```'
   agent: traffic_summarizer
+  output_file: summary.md
 
 planning_task:
   description: >
@@ -14,5 +16,7 @@ planning_task:
     proposing measures to optimize road use and reduce congestion.
   expected_output: >
     A comprehensive traffic management plan outlining strategies to alleviate congestion, 
-    improve traffic flow, and enhance road safety. The plan should be in markdown format.
+    improve traffic flow, and enhance road safety.
+    Formatted as markdown without '```'
   agent: traffic_planner
+  output_file: plan.md
