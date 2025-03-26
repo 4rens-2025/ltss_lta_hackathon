@@ -26,15 +26,14 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const [selectedFeature, setSelectedFeature] = useState(null);
     const prevSelectedRef = useRef(null);
-    const [roadworkVisible, setRoadworkVisible] = useState(false);
 
     useEffect(() => {
         // Set your Mapbox access token
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
         const bounds = [
-            [103.5, 1.18], // Southwest coordinates (lower-left)
-            [104.091, 1.485], // Northeast coordinates (upper-right)
+            [103.4, 1.08], // Southwest coordinates (lower-left)
+            [104.191, 1.585], // Northeast coordinates (upper-right)
         ];
 
         // Initialize the map
@@ -183,7 +182,7 @@ const MapComponent = () => {
             <div
                 style={{
                     position: "absolute",
-                    top: "10px",
+                    top: "70px",
                     left: "10px",
                     background: "white",
                     padding: "10px",
