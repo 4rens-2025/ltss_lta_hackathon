@@ -1,35 +1,22 @@
 import asyncio
 import json
-from typing import Any
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from typing import Annotated, Any
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
-from app.services.data_fetchers import (
-    ApprovedRoadWorksFetcher,
-    FaultyTrafficLightsFetcher,
-    TrafficImagesFetcher,
-    TrafficIncidentsFetcher,
-    TrafficSpeedBandsFetcher,
-)
+from app.services.data_fetchers.data_fetching_service import DataFetchingService
 
 router = APIRouter()
 
 
 @router.websocket("/ws/dashboard")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    data_fetching_service: Annotated[DataFetchingService, Depends()],
+):
     await websocket.accept()
     try:
         while True:
-            data_fetches = [
-                ApprovedRoadWorksFetcher(),
-                TrafficIncidentsFetcher(),
-                TrafficImagesFetcher(),
-                TrafficSpeedBandsFetcher(),
-                FaultyTrafficLightsFetcher(),
-            ]
-            combined_data = {}
-            for fetcher in data_fetches:
-                data: Any = await fetcher.fetch()
-                combined_data[fetcher.field_key] = data.dict()
+            combined_data = await data_fetching_service.fetch_combined_data()
             await websocket.send_text(json.dumps(combined_data))
             await asyncio.sleep(5)
     except WebSocketDisconnect:

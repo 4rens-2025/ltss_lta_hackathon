@@ -1,7 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers.dashboard_router import router
+from app.routers.dashboard_router import router as dashboard_router
+from app.routers.llm_router import router as llm_router
 from app.services.data_fetchers import (
     fetch_image,
 )
@@ -18,7 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+app.include_router(dashboard_router)
+app.include_router(llm_router)
 
 
 # WebSocket endpoint
