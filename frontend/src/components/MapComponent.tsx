@@ -5,7 +5,6 @@ import singaporeBoundary from "../data/singapore_boundary.json";
 import { BackendData } from "../types/backend";
 import {
     highlightRoadWorks,
-    removeRoadWorkLayer,
     setRoadworkVisibility,
 } from "../services/map/roadLayerService";
 import {
@@ -149,11 +148,7 @@ const MapComponent = () => {
 
                 // ✅ Highlight roads with road work
                 if (data.approved_road_works) {
-                    highlightRoadWorks(
-                        map,
-                        data.approved_road_works.value,
-                        roadworkVisible
-                    );
+                    highlightRoadWorks(map, data.approved_road_works.value);
                 }
 
                 // ✅ Display camera markers
@@ -253,10 +248,9 @@ const MapComponent = () => {
                 >
                     <input
                         type="checkbox"
-                        checked={roadworkVisible}
+                        defaultChecked={false}
                         onChange={(e) => {
                             const checked = e.target.checked;
-                            setRoadworkVisible(checked); // your React state
                             setRoadworkVisibility(mapRef.current, checked);
                         }}
                     />
