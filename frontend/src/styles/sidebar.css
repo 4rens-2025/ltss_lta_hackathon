@@ -1,0 +1,22 @@
+.sidebar {
+  /* Smoothly transition the width */
+  transition: width 0.3s ease;
+  overflow: hidden;
+  /* Optional: set a background, height, etc. */
+  background-color: #f8f8f8;
+  height: 100%;
+}
+
+/* Closed State */
+.sidebar.closed {
+  width: 0;
+}
+
+/* Open State (e.g. 300px) */
+.sidebar.open {
+  width: 500px; /* Adjust as desired */
+}
+
+.sidebar-content {
+  padding: 1rem;
+}

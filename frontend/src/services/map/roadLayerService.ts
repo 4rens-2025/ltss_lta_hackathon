@@ -5,6 +5,8 @@ import { getRoadNameMap } from "../../utils/roadHashMap";
 
 const roadMap: Map<string, Feature> = getRoadNameMap();
 
+let roadWorkVisibility = false;
+
 /**
  * Highlight roads with road works using a prebuilt road name map
  * @param map - Mapbox GL map instance
@@ -13,7 +15,6 @@ const roadMap: Map<string, Feature> = getRoadNameMap();
 export const highlightRoadWorks = (
     map: MapboxMap,
     roadWorks: RoadWorkEvent[],
-    visible: boolean
 ) => {
     const currentTime = new Date(); // Get the current time
 
@@ -100,11 +101,12 @@ export const highlightRoadWorks = (
     map.setLayoutProperty(
         "road-works-highlight",
         "visibility",
-        visible ? "visible" : "none"
+        roadWorkVisibility ? "visible" : "none"
     );
 };
 
 export function setRoadworkVisibility(map: MapboxMap, visible: boolean) {
+    roadWorkVisibility = visible;
     if (map.getLayer("road-works-highlight")) {
         map.setLayoutProperty(
             "road-works-highlight",

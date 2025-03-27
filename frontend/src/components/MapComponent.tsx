@@ -5,7 +5,6 @@ import singaporeBoundary from "../data/singapore_boundary.json";
 import { BackendData } from "../types/backend";
 import {
     highlightRoadWorks,
-    removeRoadWorkLayer,
     setRoadworkVisibility,
 } from "../services/map/roadLayerService";
 import {
@@ -27,15 +26,14 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const [selectedFeature, setSelectedFeature] = useState(null);
     const prevSelectedRef = useRef(null);
-    const [roadworkVisible, setRoadworkVisible] = useState(false);
 
     useEffect(() => {
         // Set your Mapbox access token
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
         const bounds = [
-            [103.5, 1.18], // Southwest coordinates (lower-left)
-            [104.091, 1.485], // Northeast coordinates (upper-right)
+            [103.4, 1.08], // Southwest coordinates (lower-left)
+            [104.191, 1.585], // Northeast coordinates (upper-right)
         ];
 
         // Initialize the map
@@ -149,11 +147,7 @@ const MapComponent = () => {
 
                 // ✅ Highlight roads with road work
                 if (data.approved_road_works) {
-                    highlightRoadWorks(
-                        map,
-                        data.approved_road_works.value,
-                        roadworkVisible
-                    );
+                    highlightRoadWorks(map, data.approved_road_works.value);
                 }
 
                 // ✅ Display camera markers
@@ -188,7 +182,7 @@ const MapComponent = () => {
             <div
                 style={{
                     position: "absolute",
-                    top: "10px",
+                    top: "70px",
                     left: "10px",
                     background: "white",
                     padding: "10px",
@@ -253,10 +247,9 @@ const MapComponent = () => {
                 >
                     <input
                         type="checkbox"
-                        checked={roadworkVisible}
+                        defaultChecked={false}
                         onChange={(e) => {
                             const checked = e.target.checked;
-                            setRoadworkVisible(checked); // your React state
                             setRoadworkVisibility(mapRef.current, checked);
                         }}
                     />
