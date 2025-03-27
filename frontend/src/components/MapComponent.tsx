@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import singaporeBoundary from "../data/singapore_boundary.json";
@@ -23,9 +23,10 @@ import {
 
 const MapComponent = () => {
     const mapContainerRef = useRef(null);
-    const mapRef = useRef(null);
-    const [selectedFeature, setSelectedFeature] = useState(null);
-    const prevSelectedRef = useRef(null);
+    const mapRef = useRef<mapboxgl.Map | null>(null);
+    const [selectedFeature, setSelectedFeature] =
+        useState<GeoJSON.Feature | null>(null);
+    const prevSelectedRef = useRef<GeoJSON.Feature | null>(null);
 
     useEffect(() => {
         // Set your Mapbox access token
@@ -38,11 +39,11 @@ const MapComponent = () => {
 
         // Initialize the map
         const map = new mapboxgl.Map({
-            container: mapContainerRef.current,
+            container: mapContainerRef.current!,
             center: [103.8198, 1.3521], // Center over Singapore
             zoom: 11,
             style: "mapbox://styles/mapbox/navigation-night-v1",
-            maxBounds: bounds,
+            maxBounds: bounds as mapboxgl.LngLatBoundsLike,
         });
         mapRef.current = map;
 
@@ -50,7 +51,7 @@ const MapComponent = () => {
             // Add the Singapore boundary as a GeoJSON source
             map.addSource("singapore", {
                 type: "geojson",
-                data: singaporeBoundary,
+                data: singaporeBoundary as GeoJSON.FeatureCollection,
                 generateId: true,
             });
 
@@ -89,11 +90,16 @@ const MapComponent = () => {
                 const feature = e.features[0];
                 // Clear previous selection if different
                 if (prevSelectedRef.current) {
-                    map.setFeatureState(prevSelectedRef.current, {
-                        selected: false,
-                    });
+                    map.setFeatureState(
+                        prevSelectedRef.current as mapboxgl.GeoJSONFeature,
+                        {
+                            selected: false,
+                        }
+                    );
                 }
-                map.setFeatureState(feature, { selected: true });
+                map.setFeatureState(feature as mapboxgl.GeoJSONFeature, {
+                    selected: true,
+                });
                 prevSelectedRef.current = feature;
                 setSelectedFeature(feature);
             });
@@ -104,9 +110,12 @@ const MapComponent = () => {
                     layers: ["singapore-fill"],
                 });
                 if (!features.length && prevSelectedRef.current) {
-                    map.setFeatureState(prevSelectedRef.current, {
-                        selected: false,
-                    });
+                    map.setFeatureState(
+                        prevSelectedRef.current as mapboxgl.GeoJSONFeature,
+                        {
+                            selected: false,
+                        }
+                    );
                     prevSelectedRef.current = null;
                     setSelectedFeature(null);
                 }
@@ -117,7 +126,9 @@ const MapComponent = () => {
                 type: "mouseenter",
                 target: { layerId: "singapore-fill" },
                 handler: ({ feature }) => {
-                    map.setFeatureState(feature, { highlight: true });
+                    if (feature) {
+                        map.setFeatureState(feature, { highlight: true });
+                    }
                     map.getCanvas().style.cursor = "pointer";
                 },
             });
@@ -127,7 +138,9 @@ const MapComponent = () => {
                 type: "mouseleave",
                 target: { layerId: "singapore-fill" },
                 handler: ({ feature }) => {
-                    map.setFeatureState(feature, { highlight: false });
+                    if (feature) {
+                        map.setFeatureState(feature, { highlight: false });
+                    }
                     map.getCanvas().style.cursor = "";
                     return false;
                 },
@@ -250,7 +263,9 @@ const MapComponent = () => {
                         defaultChecked={false}
                         onChange={(e) => {
                             const checked = e.target.checked;
-                            setRoadworkVisibility(mapRef.current, checked);
+                            if (mapRef.current) {
+                                setRoadworkVisibility(mapRef.current, checked);
+                            }
                         }}
                     />
                     Show Approved Roadworks
@@ -275,16 +290,21 @@ const MapComponent = () => {
                         zIndex: 9,
                     }}
                 >
-                    <h3>{selectedFeature.properties.Name}</h3>
+                    <h3>
+                        {selectedFeature.properties?.Name ||
+                            "No Name Available"}
+                    </h3>
                     <hr />
                     <ul style={{ padding: 0, listStyle: "none" }}>
-                        {Object.entries(selectedFeature.properties).map(
-                            ([key, value]) => (
-                                <li key={key}>
-                                    <strong>{key}</strong>: {value.toString()}
-                                </li>
-                            )
-                        )}
+                        {selectedFeature.properties &&
+                            Object.entries(selectedFeature.properties).map(
+                                ([key, value]) => (
+                                    <li key={key}>
+                                        <strong>{key}</strong>:{" "}
+                                        {value.toString()}
+                                    </li>
+                                )
+                            )}
                     </ul>
                 </div>
             )}

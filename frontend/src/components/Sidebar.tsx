@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, children }) => {
             console.log(res);
             if (res.status != 200)
                 throw new Error("Failed to trigger summary.");
-            const data = await res.json();
+            await res.json();
             startPolling();
         } catch (err) {
             console.error(err);
