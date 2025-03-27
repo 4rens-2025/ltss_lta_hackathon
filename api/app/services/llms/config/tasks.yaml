@@ -1,22 +1,51 @@
 summary_task:
-  description: >
-    Given the traffic dataset, analyze congestion levels, accident reports, 
-    and peak traffic patterns to generate a summary.
-    {data}
-  expected_output: >
-    A detailed report summarizing the traffic situation, including congestion hotspots, 
-    accident-prone areas, and peak traffic times.
-    Formatted as markdown without '```'
-  agent: traffic_summarizer
-  output_file: summary.md
+    description: >
+        Given the traffic dataset, analyze congestion levels, accident reports, and peak traffic patterns, 
+        and generate a summary that is organized by **location or road**.
+
+        For each location or road, include **only** the relevant metrics:
+          - Show congestion hotspots **only if congestion is reported** at that location.
+          - Show accident-prone areas **only if accidents are reported** at that location.
+          - Show peak traffic times **only if data indicates peak activity** at that location.
+          - Other incident in the dataset (if any).
+
+
+        Do **not** display a metric category if there is no related data for that location.
+
+        After the location-based summary, generate a comprehensive, **traffic management plan**.
+        The plan should propose **location-specific measures** to:
+          - Alleviate congestion 
+          - Improve traffic flow
+          - Enhance road safety
+          - Other possible improvement
+        in real time.
+
+
+        These strategies should be based on the analyzed data and tailored to the issues found in each area.
+
+        {data}
+    expected_output: >
+        A detailed, location-wise report summarizing the traffic situation. 
+        Each location should include only the relevant traffic metrics:
+          - Congestion hotspots (if any)
+          - Accident-prone areas (if any)
+          - Peak traffic times (if any)
+          - Other incident (if any)
+
+        Follow this summary with a location-targeted traffic management plan 
+        containing actionable strategies to optimize road usage and improve safety.
+
+        Format the output as markdown without code fences ('```').
+    agent: traffic_summarizer
+    output_file: summary.md
 
 planning_task:
-  description: >
-    Using the traffic summary, create an actionable traffic management plan, 
-    proposing measures to optimize road use and reduce congestion.
-  expected_output: >
-    A comprehensive traffic management plan outlining strategies to alleviate congestion, 
-    improve traffic flow, and enhance road safety.
-    Formatted as markdown without '```'
-  agent: traffic_planner
-  output_file: plan.md
+    description: >
+        Using the traffic summary, create an actionable traffic management plan, 
+        proposing measures to optimize road use and reduce congestion.
+    expected_output: >
+        A comprehensive traffic management plan outlining strategies to alleviate congestion, 
+        improve traffic flow, and enhance road safety.
+        Formatted as markdown without '```'
+    agent: traffic_planner
+    output_file: plan.md
