@@ -6,9 +6,7 @@ import Sidebar from "./components/Sidebar";
 function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const toggleSidebar = () => {
-        setIsSidebarOpen((prev) => !prev);
-    };
+    const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
     return (
         <div
@@ -16,32 +14,19 @@ function App() {
                 display: "flex",
                 flexDirection: "row",
                 width: "100%",
-                height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
+                // Make it full viewport height for example
+                height: "100vh",
+                // Let children (sidebar) stretch to full height
+                alignItems: "stretch",
             }}
         >
-            {/* Collapsible side bar in normal flow */}
-            <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar}>
-                <div
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                    }}
-                >
-                    <h2>Summary</h2>
-                    <p>This is where you can put your summary text.</p>
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={toggleSidebar}
+                children={undefined}
+            />
 
-                    <h3>Suggestions</h3>
-                    <ul>
-                        <li>Suggestion 1</li>
-                        <li>Suggestion 2</li>
-                        <li>Suggestion 3</li>
-                    </ul>
-                </div>
-            </Sidebar>
             <div style={{ flex: 1, position: "relative" }}>
-                {/* A button that obviously toggles the sidebar */}
                 <button
                     onClick={toggleSidebar}
                     style={{

@@ -14,7 +14,7 @@
 
 /* Open State (e.g. 300px) */
 .sidebar.open {
-  width: 300px; /* Adjust as desired */
+  width: 500px; /* Adjust as desired */
 }
 
 .sidebar-content {
