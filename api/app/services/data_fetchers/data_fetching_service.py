@@ -14,7 +14,7 @@ class DataFetchingService:
             TrafficIncidentsFetcher(),
             TrafficImagesFetcher(),
             TrafficSpeedBandsFetcher(),
-            FaultyTrafficLightsFetcher(),
+            # FaultyTrafficLightsFetcher(),
         ]
 
     async def fetch_combined_data(self) -> dict:

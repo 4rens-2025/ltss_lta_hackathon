@@ -147,8 +147,11 @@ const MapComponent = () => {
             });
         });
 
+        const backendHost =
+            import.meta.env.VITE_BACKEND_HOST || "localhost:8000";
+
         // Connect to the WebSocket server
-        const websocketUrl = "ws://localhost:8000/ws/dashboard";
+        const websocketUrl = `ws://${backendHost}/ws/dashboard`;
 
         connectWebSocket(websocketUrl, (rawData) => {
             if (!mapRef.current) return;

@@ -12,6 +12,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, children }) => {
     const sidebarClass = isOpen ? "sidebar open" : "sidebar closed";
 
+    const backendHost = import.meta.env.VITE_BACKEND_HOST || "localhost:8000";
+
     const [status, setStatus] = useState<
         "idle" | "pending" | "complete" | "error"
     >("idle");
@@ -46,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, children }) => {
 
             // POST to trigger the generation
             const res = await fetch(
-                "http://localhost:8000/llm/trigger_summary_generation",
+                `http://${backendHost}/llm/trigger_summary_generation`,
                 {
                     method: "POST",
                 }
@@ -74,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, children }) => {
         pollingRef.current = setInterval(async () => {
             try {
                 const res = await fetch(
-                    "http://localhost:8000/llm/latest_summary"
+                    `http://${backendHost}/llm/latest_summary`
                 );
                 if (res.status != 200)
                     throw new Error("Error fetching latest summary.");

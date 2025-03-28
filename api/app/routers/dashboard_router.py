@@ -18,6 +18,6 @@ async def websocket_endpoint(
         while True:
             combined_data = await data_fetching_service.fetch_combined_data()
             await websocket.send_text(json.dumps(combined_data))
-            await asyncio.sleep(5)
+            await asyncio.sleep(30)
     except WebSocketDisconnect:
         print("Client disconnected")
